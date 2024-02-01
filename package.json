@@ -1,0 +1,11 @@
+{
+  "name": "HSA29",
+  "version": "1.0.0",
+  "dependencies": {
+    "serverless": "^3.38.0"
+  },
+  "devDependencies": {
+    "serverless-python-requirements": "^6.0.0",
+    "serverless-wsgi": "^3.0.1"
+  }
+}

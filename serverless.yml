@@ -1,0 +1,77 @@
+service: HSA29
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.9
+
+  iam:
+    role: BaseLambdaExecutionRole
+
+package:
+  patterns:
+    - '!./**'
+    - './handler.py'
+    - './requirements.txt'
+
+functions:
+  S3PutMedia:
+    handler: handler.s3_media_handler
+    events:
+      - s3:
+          bucket: hsa29-media-bucket
+          event: 's3:ObjectCreated:*'
+          rules:
+            - prefix: 'upload/'
+            - suffix: '.jpeg'
+          existing: true
+
+resources:
+  Resources:
+    S3Bucket:
+      Type: 'AWS::S3::Bucket'
+      DeletionPolicy: 'Delete'
+      Properties:
+        BucketName: hsa29-media-bucket
+        AccessControl: Private
+    
+    BaseLambdaExecutionRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        RoleName: hsa29-lambdaRole
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Service:
+                  - "lambda.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+        Policies:
+          - PolicyName: hsa29-lambda
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action:
+                    - "logs:CreateLogGroup"
+                    - "logs:CreateLogStream"
+                    - "logs:PutLogEvents"
+                  Resource: "*"
+  
+                - Effect: "Allow"
+                  Action:
+                    - "s3:*"
+                  Resource: '*'
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    fileName: "requirements.txt"
+    dockerizePip: true
+    useDownloadCache: true
+    useStaticCache: true
